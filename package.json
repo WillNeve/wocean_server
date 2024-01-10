@@ -1,4 +1,11 @@
 {
+  "name": "wocean_server",
+  "version": "0.2.0",
+  "description": "A node.js/express.js backend for wocean",
+  "engines": {
+    "node": "20.x"
+  },
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
