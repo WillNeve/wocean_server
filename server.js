@@ -21,6 +21,10 @@ app.use(upload.none());
 // -------  add route handlers -------------
 const { userRoutes } = require('./routes/users');
 
+app.use('/test-route', (req, res) => {
+  res.status(200).json({message: 'Deployed API working well :D'})
+})
+
 app.use('/', userRoutes)
 // ----------------
 
@@ -29,7 +33,3 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 // ---------------
-
-const { compareCredentials } = require('./controllers/users')
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywidXNlcm5hbWUiOiJ0dGVzdCIsImVtYWlsIjoid2lsbEB3aWxsLmNvbSIsInBhc3N3b3JkIjoiMTIzMTIzIiwiaWF0IjoxNzA0ODUxNTgxfQ.uU0l3tyjbGYkqNLgklMkonls_3PpE2DIlqkUvYs60Lg"
-compareCredentials(token, 3);

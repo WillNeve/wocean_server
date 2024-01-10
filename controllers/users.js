@@ -119,6 +119,5 @@ const register = async (req, res) => {
 
 module.exports = {
   register,
-  authorize,
-  compareCredentials
+  authorize
 }
