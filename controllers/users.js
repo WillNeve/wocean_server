@@ -60,29 +60,13 @@ const validateCredentials = async (userInfos) => {
   return result.rows[0];
 }
 
-const isUserAuthorized = (token, userId) => {
-  try {
-    const decodedUser = jwt.verify(token, process.env.SECRET_KEY);
-    if (decodedUser.id === userId) {
-      return true;
-    } else {
-      return 401;
-    }
-  } catch (error) {
-    console.error('Token verification failed:', error.message);
-    return 500;
-  }
-}
-
 const jwt = require('jsonwebtoken');
 
-const authorize = async (req, res) => {
+const authenticate = async (req, res) => {
   const userInfos = {
     email: req.body.email,
     password: req.body.password,
   }
-
-  console.log('User information:', userInfos);
   const secretKey = process.env.SECRET_KEY;
   // validate user credentials
   const user = await validateCredentials(userInfos);
@@ -119,5 +103,5 @@ const register = async (req, res) => {
 
 module.exports = {
   register,
-  authorize
+  authenticate
 }

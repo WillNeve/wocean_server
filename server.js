@@ -22,12 +22,25 @@ app.use(upload.none());
 const { userRoutes } = require('./routes/users');
 const { noteRoutes } = require('./routes/notes');
 
-app.use('/test-route', (req, res) => {
-  res.status(200).json({message: 'Deployed API working well :D'})
-})
-
 app.use('/', userRoutes)
 app.use('/', noteRoutes)
+
+// -------- Sandbox (make sure to empty before deployment!) -----------
+
+// const { isUserAuthorized } = require('./controllers/auth');
+
+// app.get('/test-auth/:id', (req, res) => {
+//   const incomingToken = req.headers.authorization.replace('Bearer ', '')
+//   const authorized = isUserAuthorized(incomingToken, req.params.id);
+//   if (authorized === true) {
+//     res.status(200).json({message: 'You are authorized'})
+//   } else if (authorized === 401) {
+//     res.status(401).json({message: 'You are not authorized for this resource'})
+//   } else {
+//     res.status(500).json({message: 'We were unable to verify your authorization for this resource'})
+//   }
+// })
+
 // ----------------
 
 
