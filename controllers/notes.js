@@ -5,7 +5,7 @@ const retrieve = async (req, res) => {
   const { id, title, body, updated_at} = result.rows[0];
   const responseObj = {
     message: `Your request for note #${id} was granted`,
-    page: {
+    note: {
       id: id,
       title: title,
       body: body,
