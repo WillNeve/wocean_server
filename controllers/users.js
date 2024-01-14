@@ -90,7 +90,9 @@ const register = async (req, res) => {
   if (Object.keys(validationErrors).length === 0) {
     try {
       const newUser = await userModel.create(userInfos)
-      res.status(201).json({user: newUser})
+      const secretKey = process.env.SECRET_KEY;
+      const token = jwt.sign(newUser, secretKey);
+      res.status(201).json({user: {...newUser, token: token}})
     } catch (error) {
       console.error('Error inserting user:', error);
       res.status(500).send('Internal Server Error');
