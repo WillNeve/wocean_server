@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const notesController = require('../controllers/notes');
-const { isUserAuthorized } = require('../controllers/auth');
+const { isUserAuthorized, isUserAuthenticated } = require('../controllers/auth');
 
-router.get('/note/:id', isUserAuthorized, notesController.retrieve)
+router.get('/notes/new', isUserAuthenticated, notesController.create)
 
-router.get('/user/:id/notes', isUserAuthorized, notesController.retrieveAll)
+router.get('/user/:user_id/notes', isUserAuthorized, notesController.retrieveAll)
 
-router.patch('/note/:id', isUserAuthorized, notesController.persist)
+router.get('/notes/:note_id', notesController.getUserIdFromNote, isUserAuthorized, notesController.retrieve)
+
+router.patch('/notes/:note_id', notesController.getUserIdFromNote, isUserAuthorized, notesController.persist)
+
 
 module.exports = {
   noteRoutes: router,
