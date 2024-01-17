@@ -21,6 +21,8 @@ router.get('/notes/new', isUserAuthenticated, notesController.create)
 
 router.get('/user/:user_id/notes', isUserAuthorized, notesController.retrieveAll)
 
+router.patch('/user/:user_id/notes', isUserAuthorized, notesController.saveAll)
+
 router.get('/notes/:note_id', notesController.getUserIdFromNote, isUserAuthorized, notesController.retrieve)
 
 router.patch('/notes/:note_id', notesController.getUserIdFromNote, isUserAuthorized, notesController.persist)

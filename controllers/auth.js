@@ -12,6 +12,7 @@ const isUserAuthorized = (req, res, next) => {
         if (decodedUser.id) {
           const authorized = decodedUser.id === parseInt(resourceUserId, 10);
           if (authorized) {
+            req.params.user_id = decodedUser.id;
             next();
           } else {
             res.status(403).json({message: 'You are not authorized for this resource'});

@@ -45,11 +45,46 @@ const persist = async (req, res) => {
 
 const retrieveAll = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM notes WHERE user_id = $1 ORDER BY updated_at DESC;', [req.params.user_id]);
+    const result = await pool.query('SELECT * FROM notes WHERE user_id = $1 ORDER BY note_order ASC;', [req.params.user_id]);
     const notes = result.rows;
     res.status(200).json({message: 'You are authorized to get these notes', notes: notes})
   } catch {
     res.status(500).json({message: 'Error retrieving notes', notes: []})
+  }
+}
+
+const saveAll = async (req, res) => {
+  try {
+    let authCount = 0;
+    for (const noteUpdate of req.body) {
+      const checkMatch = await pool.query('SELECT COUNT(*) FROM notes WHERE user_id = $1 AND id = $2;', [req.params.user_id, noteUpdate.id]);
+      const authorizedForNote = parseInt(checkMatch.rows[0].count, 10) === 1;
+      if (authorizedForNote) {
+        authCount += 1;
+      }
+    }
+    const authorized = authCount === req.body.length;
+    if (authorized) {
+      const cases = req.body.map((noteUpdate) => `WHEN id = ${noteUpdate.id} THEN ${noteUpdate.order}`)
+      const iDs = req.body.map((noteUpdate) => noteUpdate.id)
+      const query = `UPDATE notes
+      SET note_order =
+        CASE
+          ${cases.join(' ')}
+          -- Add more WHEN clauses for additional note IDs
+        END
+      WHERE id IN (${iDs.join(', ')});`;
+      try {
+        await pool.query(query);
+        res.status(200).json({message: 'Notes reorder saved!'})
+      } catch {
+        res.status(500).json({message: 'Error saving notes'})
+      }
+    } else {
+      res.status(401).json({message: 'You are not authorized for one or more of these resources'})
+    }
+  } catch {
+    res.status(500).json({message: 'Error saving notes'})
   }
 }
 
@@ -58,5 +93,6 @@ module.exports = {
   persist,
   retrieveAll,
   getUserIdFromNote,
-  create
+  create,
+  saveAll
 }
