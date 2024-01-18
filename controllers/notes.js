@@ -28,7 +28,16 @@ const getUserIdFromNote = async (req, res, next) => {
 
 const create = async (req, res) => {
   const userId = req.params.user_id;
-  const result = await pool.query('INSERT INTO notes (title, body, user_id) VALUES ($1, $2, $3) RETURNING *;', ['Title', '[{"id": 0,"type": "p", "content": ""}]', userId]);
+  let folderId = null;
+  if (req.query.folder) {
+    folderId = parseInt(req.query.folder, 10);
+  }
+  let result;
+  if (folderId) {
+    result = await pool.query('INSERT INTO notes (title, body, user_id, folder_id) VALUES ($1, $2, $3, $4) RETURNING *;', ['New note', '[{"id": 0,"type": "p", "content": ""}]', userId, folderId]);
+  } else {
+    result = await pool.query('INSERT INTO notes (title, body, user_id) VALUES ($1, $2, $3) RETURNING *;', ['New note', '[{"id": 0,"type": "p", "content": ""}]', userId]);
+  }
   if (result.rows[0]) {
     res.status(200).json({message: 'Note created succesfully', note: result.rows[0]});
   } else {
@@ -44,10 +53,23 @@ const persist = async (req, res) => {
 }
 
 const retrieveAll = async (req, res) => {
+  let folderId = null;
+  if (req.query.folder) {
+    folderId = parseInt(req.query.folder, 10);
+  }
+
   try {
-    const result = await pool.query('SELECT * FROM notes WHERE user_id = $1 ORDER BY note_order ASC;', [req.params.user_id]);
-    const notes = result.rows;
-    res.status(200).json({message: 'You are authorized to get these notes', notes: notes})
+    if (folderId) {
+      const notesQuery = await pool.query(`SELECT * FROM notes WHERE user_id = $1 AND folder_id = $2 ORDER BY note_order ASC;`, [req.params.user_id, folderId]);
+      const notes = notesQuery.rows;
+      const folderTitleQuery = await pool.query(`SELECT title FROM notes WHERE user_id = $1 AND id = $2`, [req.params.user_id, folderId]);
+      const folderTitle = folderTitleQuery.rows[0].title;
+      res.status(200).json({message: 'You are authorized to get these notes', folderTitle: folderTitle, notes: notes})
+    } else {
+      const notesQuery = await pool.query(`SELECT * FROM notes WHERE user_id = $1 AND folder_id IS NULL ORDER BY note_order ASC;`, [req.params.user_id]);
+      const notes = notesQuery.rows;
+      res.status(200).json({message: 'You are authorized to get these notes', notes: notes})
+    }
   } catch {
     res.status(500).json({message: 'Error retrieving notes', notes: []})
   }
@@ -88,11 +110,41 @@ const saveAll = async (req, res) => {
   }
 }
 
+const deleteSome = async (req, res) => {
+  const ids = req.body;
+  try {
+    let authCount = 0;
+    for (const id of ids) {
+      const checkMatch = await pool.query('SELECT COUNT(*) FROM notes WHERE user_id = $1 AND id = $2;', [req.params.user_id, id]);
+      const authorizedForNote = parseInt(checkMatch.rows[0].count, 10) === 1;
+      if (authorizedForNote) {
+        authCount += 1;
+      }
+    }
+    const authorized = authCount === req.body.length;
+    if (authorized) {
+      const query = `DELETE FROM notes
+      WHERE id IN (${ids.join(', ')});`;
+      try {
+        await pool.query(query);
+        res.status(200).json({message: 'Notes reorder saved!'})
+      } catch {
+        res.status(500).json({message: 'Error saving notes'})
+      }
+    } else {
+      res.status(401).json({message: 'You are not authorized for one or more of these resources'})
+    }
+  } catch {
+    res.status(500).json({message: 'Error saving notes'})
+  }
+}
+
 module.exports = {
   retrieve,
   persist,
   retrieveAll,
   getUserIdFromNote,
   create,
-  saveAll
+  saveAll,
+  deleteSome
 }
