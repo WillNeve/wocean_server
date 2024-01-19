@@ -87,15 +87,30 @@ const saveAll = async (req, res) => {
     }
     const authorized = authCount === req.body.length;
     if (authorized) {
-      const cases = req.body.map((noteUpdate) => `WHEN id = ${noteUpdate.id} THEN ${noteUpdate.order}`)
+      const orderCases = req.body.map((noteUpdate) => `WHEN id = ${noteUpdate.id} THEN ${noteUpdate.note_order}`);
+      const folderChanges = req.body.filter((noteUpdate) => noteUpdate.folder_id !== null)
+      const folderCases = folderChanges.map((noteUpdate) => `WHEN id = ${noteUpdate.id} THEN ${noteUpdate.folder_id}`);
       const iDs = req.body.map((noteUpdate) => noteUpdate.id)
-      const query = `UPDATE notes
-      SET note_order =
-        CASE
-          ${cases.join(' ')}
-          -- Add more WHEN clauses for additional note IDs
-        END
-      WHERE id IN (${iDs.join(', ')});`;
+      let query;
+      if (folderCases.length > 0) {
+        query = `UPDATE notes
+        SET note_order =
+          CASE
+            ${orderCases.join(' ')}
+          END,
+        folder_id =
+          CASE
+            ${folderCases.join(' ')}
+          END
+        WHERE id IN (${iDs.join(', ')});`;
+      } else {
+        query = `UPDATE notes
+        SET note_order =
+          CASE
+            ${orderCases.join(' ')}
+          END
+        WHERE id IN (${iDs.join(', ')});`;
+      }
       try {
         await pool.query(query);
         res.status(200).json({message: 'Notes reorder saved!'})
