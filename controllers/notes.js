@@ -29,14 +29,15 @@ const getUserIdFromNote = async (req, res, next) => {
 const create = async (req, res) => {
   const userId = req.params.user_id;
   let folderId = null;
+  let isFolder = req.query.isFolder === 'true';
   if (req.query.folder) {
     folderId = parseInt(req.query.folder, 10);
   }
   let result;
   if (folderId) {
-    result = await pool.query('INSERT INTO notes (title, body, user_id, folder_id) VALUES ($1, $2, $3, $4) RETURNING *;', ['New note', '[{"id": 0,"type": "p", "content": ""}]', userId, folderId]);
+    result = await pool.query('INSERT INTO notes (title, body, user_id, folder_id, folder) VALUES ($1, $2, $3, $4, $5) RETURNING *;', [isFolder ? 'Folder' : 'New note', '[{"id": 0,"type": "p", "content": ""}]', userId, folderId, isFolder]);
   } else {
-    result = await pool.query('INSERT INTO notes (title, body, user_id) VALUES ($1, $2, $3) RETURNING *;', ['New note', '[{"id": 0,"type": "p", "content": ""}]', userId]);
+    result = await pool.query('INSERT INTO notes (title, body, user_id, folder) VALUES ($1, $2, $3, $4) RETURNING *;', [isFolder ? 'Folder' : 'New note', '[{"id": 0,"type": "p", "content": ""}]', userId, isFolder]);
   }
   if (result.rows[0]) {
     res.status(200).json({message: 'Note created succesfully', note: result.rows[0]});
