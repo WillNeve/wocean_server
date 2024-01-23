@@ -5,12 +5,6 @@ const { isUserAuthorized, isUserAuthenticated } = require('../controllers/auth')
 
 router.get('/notes/new', isUserAuthenticated, notesController.create)
 
-// -------- For Offline Testing ------------
-
-
-
-// -----------
-
 router.get('/user/:user_id/notes', isUserAuthorized, notesController.retrieveAll)
 
 router.patch('/user/:user_id/notes', isUserAuthorized, notesController.saveAll)

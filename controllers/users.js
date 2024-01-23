@@ -62,6 +62,17 @@ const validateCredentials = async (userInfos) => {
 
 const jwt = require('jsonwebtoken');
 
+const getStats = async (req, res) => {
+  const stats =  {
+    fileRatios: {
+      title: 'Your files',
+      labels: ['Folders', 'Notes'],
+      data: [3,7]
+    }
+  }
+  res.status(200).json({stats: stats})
+}
+
 const authenticate = async (req, res) => {
   const userInfos = {
     email: req.body.email,
@@ -105,5 +116,6 @@ const register = async (req, res) => {
 
 module.exports = {
   register,
-  authenticate
+  authenticate,
+  getStats
 }
