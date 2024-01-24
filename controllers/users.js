@@ -63,13 +63,21 @@ const validateCredentials = async (userInfos) => {
 const jwt = require('jsonwebtoken');
 
 const getStats = async (req, res) => {
+  const userId = req.params.user_id;
+  const resp = await pool.query(`SELECT
+  COUNT(*) AS total,
+  SUM(CASE WHEN folder = true THEN 1 ELSE 0 END) AS folders,
+  SUM(CASE WHEN folder = false THEN 1 ELSE 0 END) AS notes
+FROM notes
+WHERE user_id = ${userId};`)
+const count = resp.rows[0];
   const stats =  {
-    fileRatios: {
+    files: {
+      total: count.total,
       title: 'Your files',
-      labels: ['Folders', 'Notes'],
-      data: [3,7]
+      data: [['Notes', count.notes], ['Folders', count.folders]],
     }
-  }
+  };
   res.status(200).json({stats: stats})
 }
 
