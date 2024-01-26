@@ -1,9 +1,10 @@
 const { pool } = require('../db/dbConfig');
-const userModel = require('../models/user')
+const userModel = require('../models/user');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const validateInputs = (userInfos) => {
   const errors = {};
-
   // presence checks
   if (!userInfos.username) {
     if (errors.username) {
@@ -56,11 +57,21 @@ const validateInputs = (userInfos) => {
 
 
 const validateCredentials = async (userInfos) => {
-  const result = await pool.query('SELECT * FROM wocean_users WHERE email = $1 AND password = $2;', [userInfos.email, userInfos.password]);
-  return result.rows[0];
+  const result = await pool.query('SELECT * FROM wocean_users WHERE email = $1;', [userInfos.email]);
+  const requestedUser = result.rows[0];
+  const match = await bcrypt.compare(userInfos.password, requestedUser.password);
+  if (match) {
+    return {
+      id: requestedUser.id,
+      username: requestedUser.username,
+      email: requestedUser.email
+    }
+  } else {
+    return false;
+  }
+  // return result.rows[0];
 }
 
-const jwt = require('jsonwebtoken');
 
 const getStats = async (req, res) => {
   const userId = req.params.user_id;
@@ -86,12 +97,12 @@ const authenticate = async (req, res) => {
     email: req.body.email,
     password: req.body.password,
   }
-  const secretKey = process.env.SECRET_KEY;
+  const jwtSecret = process.env.JWT_SECRET_KEY;
   // validate user credentials
   const user = await validateCredentials(userInfos);
   // tokenise user credentials
   if (user) {
-    const token = jwt.sign(user, secretKey);
+    const token = jwt.sign(user.id, jwtSecret);
     res.status(200).json({user: {...user, token: token}})
   } else {
     res.status(401).json({message: 'oh noo....'})
@@ -108,9 +119,14 @@ const register = async (req, res) => {
   const validationErrors = validateInputs(userInfos);
   if (Object.keys(validationErrors).length === 0) {
     try {
-      const newUser = await userModel.create(userInfos)
-      const secretKey = process.env.SECRET_KEY;
-      const token = jwt.sign(newUser, secretKey);
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const hashedPassword = await bcrypt.hash(userInfos.password, salt);
+      userInfos.password = hashedPassword;
+      userInfos.salt = salt;
+      const newUserId = await userModel.create(userInfos);
+      const jwtSecret = process.env.JWT_SECRET_KEY;
+      const token = jwt.sign(newUserId, jwtSecret);
       res.status(201).json({user: {...newUser, token: token}})
     } catch (error) {
       console.error('Error inserting user:', error);

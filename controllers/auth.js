@@ -8,11 +8,11 @@ const isUserAuthorized = (req, res, next) => {
       const token = req.headers.authorization.replace('Bearer ', '')
       const resourceUserId = req.params.user_id;
       try {
-        const decodedUser = jwt.verify(token, process.env.SECRET_KEY);
-        if (decodedUser.id) {
-          const authorized = decodedUser.id === parseInt(resourceUserId, 10);
+        const decodedUserId = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decodedUserId) {
+          const authorized = parseInt(decodedUserId, 10) === parseInt(resourceUserId, 10);
           if (authorized) {
-            req.params.user_id = decodedUser.id;
+            req.params.user_id = decodedUserId;
             next();
           } else {
             res.status(403).json({message: 'You are not authorized for this resource'});
@@ -40,7 +40,7 @@ const isUserAuthenticated = (req, res, next) => {
     } else {
       const token = req.headers.authorization.replace('Bearer ', '')
       try {
-        const decodedUser = jwt.verify(token, process.env.SECRET_KEY);
+        const decodedUser = jwt.verify(token, process.env.JWT_SECRET_KEY);
         if (decodedUser.id) {
           req.params.user_id = decodedUser.id;
           next();
