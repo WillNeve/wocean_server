@@ -9,11 +9,13 @@ router.get('/user/:user_id/notes', isUserAuthorized, notesController.retrieveAll
 
 router.patch('/user/:user_id/notes', isUserAuthorized, notesController.saveAll)
 
-router.delete('/user/:user_id/notes', isUserAuthorized, notesController.deleteSome)
+router.delete('/user/:user_id/notes', isUserAuthorized, notesController.destroySome)
 
 router.get('/notes/:note_id', notesController.getUserIdFromNote, isUserAuthorized, notesController.retrieve)
 
 router.patch('/notes/:note_id', notesController.getUserIdFromNote, isUserAuthorized, notesController.persist)
+
+router.delete('/notes/:note_id', notesController.getUserIdFromNote, isUserAuthorized, notesController.destroy )
 
 
 module.exports = {

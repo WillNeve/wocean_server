@@ -126,7 +126,16 @@ const saveAll = async (req, res) => {
   }
 }
 
-const deleteSome = async (req, res) => {
+const destroy = async (req, res) => {
+  const noteId = req.params.note_id;
+  // unbind all notes with noteId as folderId (back to null)
+  const unbindQuery = await pool.query(`UPDATE notes SET folder_id = NULL WHERE folder_id = $1;`, [noteId]);
+  // delete note
+  const deleteQuery = await pool.query(`DELETE FROM notes WHERE id = $1;`, [noteId])
+  res.status(200).json({message: `Note ${noteId} destroyed, any previous children moved to root`})
+}
+
+const destroySome = async (req, res) => {
   const ids = req.body;
   try {
     let authCount = 0;
@@ -162,5 +171,6 @@ module.exports = {
   getUserIdFromNote,
   create,
   saveAll,
-  deleteSome
+  destroySome,
+  destroy
 }

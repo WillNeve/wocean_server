@@ -40,9 +40,9 @@ const isUserAuthenticated = (req, res, next) => {
     } else {
       const token = req.headers.authorization.replace('Bearer ', '')
       try {
-        const decodedUser = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        if (decodedUser.id) {
-          req.params.user_id = decodedUser.id;
+        const decodedUserId = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decodedUserId) {
+          req.params.user_id = decodedUserId;
           next();
         } else {
           res.status(500).json({message: 'Your authorization token format is invalid'})
