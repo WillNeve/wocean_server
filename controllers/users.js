@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const validateInputs = (userInfos) => {
-  const errors = {};
+  const errors = {username: ['sdfsdfs', 'sdfsdf']};
   // presence checks
   if (!userInfos.username) {
     if (errors.username) {
