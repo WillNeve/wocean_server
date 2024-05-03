@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const validateInputs = (userInfos) => {
-  const errors = {};
+  const errors = {username: ['sdfsdfs', 'sdfsdf']};
   // presence checks
   if (!userInfos.username) {
     if (errors.username) {
@@ -127,7 +127,7 @@ const register = async (req, res) => {
       const newUserId = await userModel.create(userInfos);
       const jwtSecret = process.env.JWT_SECRET_KEY;
       const token = jwt.sign(newUserId, jwtSecret);
-      res.status(201).json({user: {...newUser, token: token}})
+      res.status(201).json({user: {...userInfos, token: token}})
     } catch (error) {
       console.error('Error inserting user:', error);
       res.status(500).send('Internal Server Error');
