@@ -127,6 +127,7 @@ const register = async (req, res) => {
       const newUserId = await userModel.create(userInfos);
       const jwtSecret = process.env.JWT_SECRET_KEY;
       const token = jwt.sign(newUserId, jwtSecret);
+      const newUser = {...userInfos, id: newUserId};
       res.status(201).json({user: {...newUser, token: token}})
     } catch (error) {
       console.error('Error inserting user:', error);
